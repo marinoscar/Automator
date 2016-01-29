@@ -39,6 +39,8 @@ namespace Recorder
         private void btnStop_Click(object sender, EventArgs e)
         {
             _recorder.Stop();
+            txtConsole.Clear();
+            txtConsole.AppendText(_recorder.GetCommands());
         }
     }
 }

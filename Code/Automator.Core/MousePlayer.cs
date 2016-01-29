@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,6 +11,18 @@ namespace Automator.Core
 {
     public class MousePlayer
     {
+        private static MousePlayer _instance;
+
+        public static MousePlayer Instance
+        {
+            get { return _instance ?? (_instance = new MousePlayer()); }
+        }
+
+        private MousePlayer()
+        {
+
+        }
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         static extern bool SetCursorPos(int x, int y);
 
@@ -25,21 +38,42 @@ namespace Automator.Core
 
         public void DoMouseClick(IMouseData data)
         {
-
+            if (data.Button == 1048576)
+                DoMouseLeftClick(data);
+            else
+                DoMouseRightClick(data);
         }
 
         private void DoMouseLeftClick(IMouseData data)
         {
-            SetCursorPos(data.X, data.Y);
-            mouse_event(MOUSEEVENTF_LEFTDOWN, data.X, data.Y, 0, 0);
-            mouse_event(MOUSEEVENTF_LEFTUP, data.X, data.Y, 0, 0);
+            DoClick(
+                () => mouse_event(MOUSEEVENTF_LEFTDOWN, data.X, data.Y, 0, 0),
+                () => mouse_event(MOUSEEVENTF_LEFTUP, data.X, data.Y, 0, 0),
+                data);
         }
 
         private void DoMouseRightClick(IMouseData data)
         {
+            DoClick(
+                () => mouse_event(MOUSEEVENTF_RIGHTDOWN, data.X, data.Y, 0, 0),
+                () => mouse_event(MOUSEEVENTF_RIGHTUP, data.X, data.Y, 0, 0),
+                data);
+        }
+
+        private void DoClick(Action down, Action up, IMouseData data)
+        {
             SetCursorPos(data.X, data.Y);
-            mouse_event(MOUSEEVENTF_RIGHTDOWN, data.X, data.Y, 0, 0);
-            mouse_event(MOUSEEVENTF_RIGHTUP, data.X, data.Y, 0, 0);
+            if(data.Count <= 1)
+            {
+                down();
+                up();
+                return;
+            }
+            down();
+            up();
+            Thread.Sleep(100);
+            down();
+            up();
         }
     }
 }

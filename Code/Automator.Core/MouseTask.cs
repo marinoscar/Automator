@@ -8,6 +8,17 @@ namespace Automator.Core
 {
     public class MouseTask : ITask, IMouseData
     {
+        public static MouseTask FromData (IMouseData data)
+        {
+            return new MouseTask()
+            {
+                Button = data.Button,
+                Count = data.Count,
+                X = data.X,
+                Y = data.Y
+            };
+        }
+
         public int Button { get; set; }
 
         public int Count { get; set; }
@@ -18,7 +29,7 @@ namespace Automator.Core
 
         public void Execute()
         {
-            throw new NotImplementedException();
+            MousePlayer.Instance.DoMouseClick(this);
         }
     }
 }

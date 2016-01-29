@@ -1,4 +1,5 @@
-﻿using Gma.System.MouseKeyHook;
+﻿using Automator.Core;
+using Gma.System.MouseKeyHook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,24 +58,29 @@ namespace Recorder
 
         protected virtual void OnClick(MouseEventArgs e)
         {
-            DoRecord(e);
+            DoRecord(e, false);
         }
 
         protected virtual void OnDoubleClick(MouseEventArgs e)
         {
-            DoRecord(e);
+            DoRecord(e, true);
         }
 
-        protected virtual void DoRecord(MouseEventArgs e)
+        protected virtual MouseEvent DoRecord(MouseEventArgs e, bool isDbl)
         {
             var v = MouseEvent.FromEvent(e);
             Events.Add(v);
             OnActionRecorded(v);
+            if(Events.Count > 1 && isDbl)
+            {
+                Events.RemoveAt(Events.IndexOf(v)- 1);
+            }
+            return v;
         }
 
     }
 
-    public class MouseEvent : RecorderEvent
+    public class MouseEvent : RecorderEvent, IMouseData
     {
 
         public static MouseEvent FromEvent(MouseEventArgs e)

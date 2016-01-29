@@ -1,7 +1,9 @@
 ﻿using Automator.Core;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -10,6 +12,9 @@ namespace Recorder
 {
     public class DesktopRecorder
     {
+        [DllImport("user32.dll")]
+        static extern int MapVirtualKey(uint uCode, uint uMapType);
+
         private MouseRecorder _mouseRecorder { get; set; }
         private KeyRecorder _keyRecorder { get; set; }
         protected List<IRecorderEvent> RawEvents { get; set; }
@@ -61,12 +66,11 @@ namespace Recorder
         private void MouseRecorder_ActionRecorded(object sender, MouseEvent e)
         {
             RawEvents.Add(e);
-            OnLogAction(string.Format("Mouse Click: X: {0} Y: {1}", e.X, e.Y));
+            OnLogAction(string.Format("Mouse Click: X: {0} Y: {1} Count: {2} Button: {3}", e.X, e.Y, e.Count, e.Button));
         }
 
         private List<ITask> GetTasks()
         {
-            var keyConverter = new KeysConverter();
             var res = new List<ITask>(1000);
             var sb = new StringBuilder();
             foreach(var e in RawEvents)
@@ -75,15 +79,32 @@ namespace Recorder
                 {
                     var k = (KeyEvent)e;
                     if (k.Modifiers == Keys.None)
-                        sb.Append(keyConverter.ConvertToString(k.Data));
+                        sb.Append(GetString(k.Data));
                 }
                 if(e.Type == "MouseEvent")
                 {
-                    
+                    if(sb.Length > 0)
+                    {
+                        res.Add(new KeyboardTask() { CommandText = sb.ToString() });
+                        res.Add(new WaitTask() { DurationInMs = 500 });
+                    }
+                    sb.Clear();
                     var m = (MouseEvent)e;
+                    res.Add(MouseTask.FromData(m));
                 }
             }
             return res;
+        }
+
+        private string GetString(Keys keyData)
+        {
+            var nonVirtualKey = MapVirtualKey((uint)keyData, 2);
+            return  Convert.ToChar(nonVirtualKey).ToString();
+        }
+
+        public string GetCommands()
+        {
+            return JsonConvert.SerializeObject(GetTasks());
         }
     }
 }
