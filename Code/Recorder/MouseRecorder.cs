@@ -74,7 +74,7 @@ namespace Recorder
 
     }
 
-    public class MouseEvent
+    public class MouseEvent : RecorderEvent
     {
 
         public static MouseEvent FromEvent(MouseEventArgs e)
@@ -84,8 +84,7 @@ namespace Recorder
                 Count = e.Clicks,
                 X = e.X,
                 Y = e.Y,
-                Button = Convert.ToInt32(e.Button),
-                Tick = DateTime.UtcNow.Ticks
+                Button = Convert.ToInt32(e.Button)
             };
         }
 
@@ -96,6 +95,5 @@ namespace Recorder
 
         public int Button { get; set; }
 
-        public long Tick { get; set; }
     }
 }

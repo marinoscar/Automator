@@ -22,8 +22,14 @@ namespace Recorder
         public void Initialize()
         {
             _globalHook = Hook.GlobalEvents();
-            _globalHook.KeyPress += KeyPress;
+            _globalHook.KeyDown += KeyDown;
 
+        }
+
+        private void KeyDown(object sender, KeyEventArgs e)
+        {
+
+            DoRecord(e);
         }
 
         protected virtual void OnActionRecorded(KeyEvent e)
@@ -40,18 +46,7 @@ namespace Recorder
             if (_globalHook != null) _globalHook.Dispose();
         }
 
-        #region Events
-
-        private void KeyPress(object sender, KeyPressEventArgs e)
-        {
-            DoRecord(e);
-        }
-
-        #endregion
-
-        
-
-        protected virtual void DoRecord(KeyPressEventArgs e)
+        protected virtual void DoRecord(KeyEventArgs e)
         {
             var v = KeyEvent.FromEvent(e);
             Keys.Add(v);
@@ -59,17 +54,41 @@ namespace Recorder
         }
     }
 
-    public class KeyEvent
+    public class KeyEvent : RecorderEvent
     {
-        public static KeyEvent FromEvent(KeyPressEventArgs e)
+        protected KeyEvent()
+        {
+            IsEmpty = false;
+        }
+
+        public static KeyEvent FromEvent(KeyEventArgs e)
         {
             return new KeyEvent()
             {
-                Key = e.KeyChar,
-                Tick = DateTime.UtcNow.Ticks
+                Key = e.KeyValue, Alt = e.Alt, Control = e.Control,
+                Shift = e.Shift,
+                Tick = DateTime.UtcNow.Ticks, Code = e.KeyCode, Data = e.KeyData,
+                Modifiers = e.Modifiers
             };
         }
-        public char Key { get; set; }
-        public long Tick { get; set; }
+
+        public bool IsEmpty { get; protected set; }
+
+        public Keys Data { get; set; }
+        public Keys Code { get; set; }
+        public Keys Modifiers { get; set; }
+        public bool Alt { get; set; }
+        public bool Control { get; set; }
+        public bool Shift { get; set; }
+        public int Key { get; set; }
     }
+
+    public class EmptyKeyEvent : KeyEvent
+    {
+        private EmptyKeyEvent()
+        {
+            IsEmpty = true;
+        }
+    }
+
 }

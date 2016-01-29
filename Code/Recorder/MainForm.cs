@@ -24,7 +24,7 @@ namespace Recorder
 
         private void Recorder_LogAction(object sender, string e)
         {
-            txtConsole.AppendText(e);
+            txtConsole.AppendText(string.Format("{0}\n",e));
         }
 
         private void btnStart_Click(object sender, EventArgs e)
