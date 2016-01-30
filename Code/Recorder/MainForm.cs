@@ -30,43 +30,12 @@ namespace Recorder
             txtConsole.AppendText(string.Format("{0}\n", e));
         }
 
-        private void btnStart_Click(object sender, EventArgs e)
-        {
-            _recorder.Start();
-        }
-
+        
         private void MainForm_Load(object sender, EventArgs e)
         {
         }
 
-        private void btnStop_Click(object sender, EventArgs e)
-        {
-            _recorder.Stop();
-            tabResult.Show();
-            LoadTree();
-        }
-
-        private void btnRun_Click(object sender, EventArgs e)
-        {
-            var root = treeResult.Nodes[0];
-            var taskNodes = root.Nodes.Cast<TreeNode>().ToList();
-            TreeNode prev = null;
-            foreach(var node in taskNodes)
-            {
-                Application.DoEvents();
-                var task = ((ITask)node.Tag);
-                node.ForeColor = Color.Blue;
-                treeResult.SelectedNode = node;
-                node.EnsureVisible();
-                Application.DoEvents();
-                task.Execute();
-                if (prev != null)
-                    prev.ForeColor = Color.Black;
-                prev = node;
-                Application.DoEvents();
-            }
-            MessageBox.Show("Robot Completed", "Robot");
-        }
+      
 
         private void LoadTree()
         {
@@ -76,16 +45,22 @@ namespace Recorder
                 Name = "root",
                 Text = "Tasks"
             };
+            treeResult.Nodes.Add(root);
+            treeResult.ExpandAll();
+            tabControl.SelectedTab = tabResult;
+            pbExecution.Visible = true;
+            pbExecution.Minimum = 1;
+            pbExecution.Maximum = _recorder.TaskList.Count;
             var tasks = _recorder.TaskList;
             foreach(var task in _recorder.TaskList)
             {
                 var token = JToken.FromObject(task);
                 var node = LoadNode(root, token);
+                pbExecution.Value = _recorder.TaskList.IndexOf(task) + 1;
                 node.Tag = task;
+                node.EnsureVisible();
+                Application.DoEvents();
             }
-            treeResult.Nodes.Add(root);
-            treeResult.ExpandAll();
-            tabControl.SelectedTab = tabResult;
         }
 
         private TreeNode LoadNode(TreeNode root, JToken token)
@@ -126,6 +101,45 @@ namespace Recorder
         private bool IsTokenScalarValue(JToken token)
         {
             return !(token.Type == JTokenType.Array || token.Type == JTokenType.Object || token.Type == JTokenType.Property);
+        }
+
+        private void btnRecord_Click(object sender, EventArgs e)
+        {
+            btnRecord.Enabled = false;
+            _recorder.Start();
+        }
+
+        private void btnStopRecording_Click(object sender, EventArgs e)
+        {
+            btnStopRecording.Enabled = false;
+            _recorder.Stop();
+            tabResult.Show();
+            LoadTree();
+        }
+
+        private void btnExecute_Click(object sender, EventArgs e)
+        {
+            var root = treeResult.Nodes[0];
+            var taskNodes = root.Nodes.Cast<TreeNode>().ToList();
+            pbExecution.Visible = true;
+            pbExecution.Minimum = 1;
+            pbExecution.Maximum = taskNodes.Count;
+            TreeNode prev = null;
+            foreach (var node in taskNodes)
+            {
+                Application.DoEvents();
+                var task = ((ITask)node.Tag);
+                node.ForeColor = Color.Blue;
+                treeResult.SelectedNode = node;
+                node.EnsureVisible();
+                Application.DoEvents();
+                task.Execute();
+                if (prev != null)
+                    prev.ForeColor = Color.Black;
+                prev = node;
+                pbExecution.Value = taskNodes.IndexOf(node) + 1;
+                Application.DoEvents();
+            }
         }
     }
 }
