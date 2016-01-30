@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Automator.Core;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,24 @@ namespace Recorder
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            _recorder.RunTasks();
+            var root = treeResult.Nodes[0];
+            var taskNodes = root.Nodes.Cast<TreeNode>().ToList();
+            TreeNode prev = null;
+            foreach(var node in taskNodes)
+            {
+                Application.DoEvents();
+                var task = ((ITask)node.Tag);
+                node.ForeColor = Color.Blue;
+                treeResult.SelectedNode = node;
+                node.EnsureVisible();
+                Application.DoEvents();
+                task.Execute();
+                if (prev != null)
+                    prev.ForeColor = Color.Black;
+                prev = node;
+                Application.DoEvents();
+            }
+            MessageBox.Show("Robot Completed", "Robot");
         }
 
         private void LoadTree()
@@ -58,19 +76,21 @@ namespace Recorder
                 Name = "root",
                 Text = "Tasks"
             };
-            var json = JsonConvert.DeserializeObject(_recorder.GetCommands());
-            foreach(JToken token in (JArray)json)
+            var tasks = _recorder.TaskList;
+            foreach(var task in _recorder.TaskList)
             {
-                LoadNode(root, token);
+                var token = JToken.FromObject(task);
+                var node = LoadNode(root, token);
+                node.Tag = task;
             }
             treeResult.Nodes.Add(root);
             treeResult.ExpandAll();
             tabControl.SelectedTab = tabResult;
         }
 
-        private void LoadNode(TreeNode root, JToken token)
+        private TreeNode LoadNode(TreeNode root, JToken token)
         {
-            if ((token.Type == JTokenType.Property && ((JProperty)token).Name == "TaskCaption") || IsTokenScalarValue(token)) return;
+            if ((token.Type == JTokenType.Property && ((JProperty)token).Name == "TaskCaption") || IsTokenScalarValue(token)) return null;
             var name = GetName(token);
             var newNode = new TreeNode()
             {
@@ -85,6 +105,7 @@ namespace Recorder
                     LoadNode(newNode, childToken);
                 }
             }
+            return newNode;
         }
 
         private string GetName(JToken token)

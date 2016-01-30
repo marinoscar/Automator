@@ -18,6 +18,8 @@ namespace Automator.Core
 
         public string TaskCaption { get { return string.Format("Send Keys {0}", GetSummaryText()); } }
 
+        public string TaskName { get { return GetType().Name; } }
+
         private string GetSummaryText()
         {
             if (CommandText.Length <= 15) return CommandText;
