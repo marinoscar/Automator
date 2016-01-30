@@ -17,7 +17,12 @@ namespace Recorder
 
         private MouseRecorder _mouseRecorder { get; set; }
         private KeyRecorder _keyRecorder { get; set; }
+        private WindowTracker _windowTracker;
+        private List<ITask> _taskList;
+
         protected List<IRecorderEvent> RawEvents { get; set; }
+
+        public List<ITask> TaskList { get { return _taskList ?? (_taskList = GetTasks()); } }
 
         public event EventHandler<string> LogAction;
 
@@ -27,6 +32,7 @@ namespace Recorder
         public DesktopRecorder()
         {
             RawEvents = new List<IRecorderEvent>(10000);
+            _windowTracker = new WindowTracker();
         }
 
         protected virtual void OnLogAction(string e)
@@ -51,60 +57,87 @@ namespace Recorder
 
         public void Stop()
         {
-            _mouseRecorder.Dispose();
-            _keyRecorder.Dispose();
+            if (_mouseRecorder != null)
+                _mouseRecorder.Dispose();
+            if (_keyRecorder != null)
+                _keyRecorder.Dispose();
             _mouseRecorder = null;
             _keyRecorder = null;
         }
 
         private void KeyRecorder_ActionRecorded(object sender, KeyEvent e)
         {
-            RawEvents.Add(e);
-            OnLogAction(string.Format("Key: {0} Data: {1} Code: {2} Modifiers: {3} Shift: {4} Control: {5} Alt: {6}", e.Key, e.Data, e.Code, e.Modifiers, e.Shift, e.Control, e.Alt));
+            AddEvent(e);
+            OnLogAction(string.Format("Value: {7} Key: {0} Data: {1} Code: {2} Modifiers: {3} Shift: {4} Control: {5} Alt: {6}", e.Key, e.Data, e.Code, e.Modifiers, e.Shift, e.Control, e.Alt, e.Value.ToString()));
         }
 
         private void MouseRecorder_ActionRecorded(object sender, MouseEvent e)
         {
-            RawEvents.Add(e);
+            AddEvent(e);
             OnLogAction(string.Format("Mouse Click: X: {0} Y: {1} Count: {2} Button: {3}", e.X, e.Y, e.Count, e.Button));
+        }
+
+        private void AddEvent(IRecorderEvent e)
+        {
+            if(_windowTracker.HasActiveWindowChanged())
+            {
+                OnLogAction(string.Format("Active Window Changed to: {0} id: {0}", _windowTracker.GetActiveWindowTitle(), _windowTracker.GetActiveWindowId().ToInt64()));
+                RawEvents.Add(new TransitionEvent() { TransitionType = TransitionType.ActiveWindowChanged });
+            }
+            RawEvents.Add(e);
+        }
+
+        public void RunTasks()
+        {
+            TaskList.ForEach(i => i.Execute());
         }
 
         private List<ITask> GetTasks()
         {
             var res = new List<ITask>(1000);
             var sb = new StringBuilder();
-            foreach(var e in RawEvents)
+            foreach (var e in RawEvents)
             {
-                if(e.Type == "KeyEvent")
+                if(e.Type == "TransitionEvent" && ((TransitionEvent)e).TransitionType == TransitionType.ActiveWindowChanged && sb.Length > 0)
+                {
+                    DoProcessKey(res, sb);
+                }
+                if (e.Type == "KeyEvent")
                 {
                     var k = (KeyEvent)e;
-                    if (k.Modifiers == Keys.None)
-                        sb.Append(GetString(k.Data));
+                    sb.Append(k.Value);
                 }
-                if(e.Type == "MouseEvent")
+                if (e.Type == "MouseEvent")
                 {
-                    if(sb.Length > 0)
+                    if (sb.Length > 0)
                     {
-                        res.Add(new KeyboardTask() { CommandText = sb.ToString() });
-                        res.Add(new WaitTask() { DurationInMs = 500 });
+                        DoProcessKey(res, sb);
                     }
-                    sb.Clear();
                     var m = (MouseEvent)e;
                     res.Add(MouseTask.FromData(m));
+                    AddWait(res, 500);
                 }
             }
+            res.Remove(res.Last());
             return res;
         }
 
-        private string GetString(Keys keyData)
+        private void DoProcessKey(List<ITask> taskList, StringBuilder sb)
         {
-            var nonVirtualKey = MapVirtualKey((uint)keyData, 2);
-            return  Convert.ToChar(nonVirtualKey).ToString();
+            taskList.Add(new KeyboardTask() { CommandText = sb.ToString() });
+            AddWait(taskList, 500);
+            sb.Clear();
         }
+
+        private void AddWait(List<ITask> taskList, int ms)
+        {
+            taskList.Add(new WaitTask() { DurationInMs = ms });
+        }
+
 
         public string GetCommands()
         {
-            return JsonConvert.SerializeObject(GetTasks());
+            return JsonConvert.SerializeObject(TaskList);
         }
     }
 }

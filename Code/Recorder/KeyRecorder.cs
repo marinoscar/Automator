@@ -13,6 +13,7 @@ namespace Recorder
         private IKeyboardMouseEvents _globalHook;
         public List<KeyEvent> Keys { get; private set; }
         public event EventHandler<KeyEvent> ActionRecorded;
+        private KeyEvent _keyEvent;
 
         public KeyRecorder()
         {
@@ -23,13 +24,21 @@ namespace Recorder
         {
             _globalHook = Hook.GlobalEvents();
             _globalHook.KeyDown += KeyDown;
+            _globalHook.KeyPress += KeyPress;
 
+        }
+
+        private void KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (_keyEvent == null) return;
+            _keyEvent.Value = e.KeyChar;
+            PersistKey();
         }
 
         private void KeyDown(object sender, KeyEventArgs e)
         {
 
-            DoRecord(e);
+            _keyEvent = KeyEvent.FromEvent(e);
         }
 
         protected virtual void OnActionRecorded(KeyEvent e)
@@ -46,11 +55,11 @@ namespace Recorder
             if (_globalHook != null) _globalHook.Dispose();
         }
 
-        protected virtual void DoRecord(KeyEventArgs e)
+        protected virtual void PersistKey()
         {
-            var v = KeyEvent.FromEvent(e);
-            Keys.Add(v);
-            OnActionRecorded(v);
+            Keys.Add(_keyEvent);
+            OnActionRecorded(_keyEvent);
+            _keyEvent = null;
         }
     }
 
@@ -81,6 +90,7 @@ namespace Recorder
         public bool Control { get; set; }
         public bool Shift { get; set; }
         public int Key { get; set; }
+        public char Value { get; set; }
     }
 
     public class EmptyKeyEvent : KeyEvent

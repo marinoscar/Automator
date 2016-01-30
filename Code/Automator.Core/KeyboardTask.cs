@@ -13,7 +13,7 @@ namespace Automator.Core
 
         public void Execute()
         {
-            SendKeys.SendWait(CommandText);
+            SendKeys.Send(CommandText);
         }
     }
 }

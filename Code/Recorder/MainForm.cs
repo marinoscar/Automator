@@ -42,5 +42,10 @@ namespace Recorder
             txtConsole.Clear();
             txtConsole.AppendText(_recorder.GetCommands());
         }
+
+        private void btnRun_Click(object sender, EventArgs e)
+        {
+            _recorder.RunTasks();
+        }
     }
 }

@@ -48,6 +48,7 @@
     <Compile Include="MouseTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WaitTask.cs" />
+    <Compile Include="WindowTracker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
