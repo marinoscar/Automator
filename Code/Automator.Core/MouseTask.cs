@@ -8,7 +8,7 @@ namespace Automator.Core
 {
     public class MouseTask : ITask, IMouseData
     {
-        public static MouseTask FromData (IMouseData data)
+        public static MouseTask FromData(IMouseData data)
         {
             return new MouseTask()
             {
@@ -26,6 +26,17 @@ namespace Automator.Core
         public int X { get; set; }
 
         public int Y { get; set; }
+
+        public string TaskCaption { get { return GetName(); } }
+
+        public string TaskName { get { return GetType().Name; } }
+
+        private string GetName()
+        {
+            if (Count > 1) return "Double Click";
+            return Button != 1048576 ? "Right Click" : "Left Click";
+        }
+
 
         public void Execute()
         {

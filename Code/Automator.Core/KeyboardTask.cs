@@ -15,5 +15,13 @@ namespace Automator.Core
         {
             SendKeys.Send(CommandText);
         }
+
+        public string TaskCaption { get { return string.Format("Send Keys {0}", GetSummaryText()); } }
+
+        private string GetSummaryText()
+        {
+            if (CommandText.Length <= 15) return CommandText;
+            return string.Format("{0}...", CommandText.Substring(0, 13));
+        }
     }
 }

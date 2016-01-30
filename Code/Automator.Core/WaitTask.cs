@@ -15,5 +15,9 @@ namespace Automator.Core
         {
             Thread.Sleep(DurationInMs);
         }
+
+        public string TaskCaption { get { return string.Format("Wait {0}ms", DurationInMs); } }
+
+        public string TaskName { get { return GetType().Name; } }
     }
 }

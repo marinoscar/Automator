@@ -9,6 +9,8 @@ namespace Automator.Core
 {
     public interface ITask
     {
+        string TaskName { get; }
+        string TaskCaption { get; }
         void Execute();
     }
 }
