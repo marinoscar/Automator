@@ -248,18 +248,39 @@ namespace Recorder
                 EditorObject = task
             };
             if (editor.ShowDialog() != DialogResult.OK) return;
-            treeResult.SelectedNode.Tag = editor.EditorObject;
-            treeResult.SelectedNode.Text = task.TaskCaption;
-            treeResult.SelectedNode.Nodes.Clear();
+            treeResult.SelectedNode.Tag = EditNode(treeResult.SelectedNode, task);
+        }
+
+        private TreeNode EditNode(TreeNode node, ITask task)
+        {
+            node.Text = task.TaskCaption;
+            node.Nodes.Clear();
             var obj = JObject.FromObject(task);
-            foreach(var token in obj.Values<JToken>())
+            foreach (var token in obj.Values<JToken>())
             {
-                LoadNode(treeResult.SelectedNode, token);
+                LoadNode(node, token);
             }
             treeResult.Refresh();
             Application.DoEvents();
-            treeResult.SelectedNode.EnsureVisible();
+            node.EnsureVisible();
             SetDirty();
+            return node;
+        }
+
+        private void mnuUpdateWait_Click(object sender, EventArgs e)
+        {
+            var editor = new WaitToolEditor();
+            if (editor.ShowDialog() != DialogResult.OK) return;
+            var nodes = treeResult.Nodes[0].Nodes.Cast<TreeNode>()
+                .Where(i => i.Tag.GetType().Name == typeof(WaitTask).Name).ToList();
+            foreach(var node in nodes)
+            {
+                var task = (WaitTask)node.Tag;
+                task.DurationInMs = editor.Value;
+                EditNode(node, task);
+            }
+
+
         }
     }
 }

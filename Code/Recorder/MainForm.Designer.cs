@@ -69,7 +69,6 @@
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.customizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -80,6 +79,8 @@
             this.mnuNodeCtx = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mnuNodeEdit = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuNodeDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.mnuUpdateWait = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl.SuspendLayout();
             this.tabConsole.SuspendLayout();
             this.tabResult.SuspendLayout();
@@ -431,22 +432,17 @@
             // toolsToolStripMenuItem
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.customizeToolStripMenuItem,
-            this.optionsToolStripMenuItem});
+            this.optionsToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.mnuUpdateWait});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.toolsToolStripMenuItem.Text = "&Tools";
             // 
-            // customizeToolStripMenuItem
-            // 
-            this.customizeToolStripMenuItem.Name = "customizeToolStripMenuItem";
-            this.customizeToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
-            this.customizeToolStripMenuItem.Text = "&Customize";
-            // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.optionsToolStripMenuItem.Text = "&Options";
             // 
             // helpToolStripMenuItem
@@ -496,21 +492,33 @@
             this.mnuNodeEdit,
             this.mnuNodeDelete});
             this.mnuNodeCtx.Name = "mnuNodeCtx";
-            this.mnuNodeCtx.Size = new System.Drawing.Size(153, 70);
+            this.mnuNodeCtx.Size = new System.Drawing.Size(108, 48);
             // 
             // mnuNodeEdit
             // 
             this.mnuNodeEdit.Name = "mnuNodeEdit";
-            this.mnuNodeEdit.Size = new System.Drawing.Size(152, 22);
+            this.mnuNodeEdit.Size = new System.Drawing.Size(107, 22);
             this.mnuNodeEdit.Text = "Edit";
             this.mnuNodeEdit.Click += new System.EventHandler(this.mnuNodeEdit_Click);
             // 
             // mnuNodeDelete
             // 
             this.mnuNodeDelete.Name = "mnuNodeDelete";
-            this.mnuNodeDelete.Size = new System.Drawing.Size(152, 22);
+            this.mnuNodeDelete.Size = new System.Drawing.Size(107, 22);
             this.mnuNodeDelete.Text = "Delete";
             this.mnuNodeDelete.Click += new System.EventHandler(this.mnuNodeDelete_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(178, 6);
+            // 
+            // mnuUpdateWait
+            // 
+            this.mnuUpdateWait.Name = "mnuUpdateWait";
+            this.mnuUpdateWait.Size = new System.Drawing.Size(181, 22);
+            this.mnuUpdateWait.Text = "Update all wait tasks";
+            this.mnuUpdateWait.Click += new System.EventHandler(this.mnuUpdateWait_Click);
             // 
             // MainForm
             // 
@@ -576,7 +584,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem selectAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem customizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem contentsToolStripMenuItem;
@@ -589,5 +596,7 @@
         private System.Windows.Forms.ContextMenuStrip mnuNodeCtx;
         private System.Windows.Forms.ToolStripMenuItem mnuNodeEdit;
         private System.Windows.Forms.ToolStripMenuItem mnuNodeDelete;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem mnuUpdateWait;
     }
 }
