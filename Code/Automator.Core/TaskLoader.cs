@@ -34,7 +34,7 @@ namespace Automator.Core
 
         private ITask GetTask(JToken token)
         {
-            var taskName = token.Values<JProperty>().SingleOrDefault(i => i.Name == "TaskName").ToString();
+            var taskName = token.Values<JProperty>().SingleOrDefault(i => i.Name == "TaskName").Value.ToString();
             if (string.IsNullOrWhiteSpace(taskName)) return null;
             var taskType = _taskMapper[taskName];
             if (taskType == null) return null;
@@ -44,7 +44,7 @@ namespace Automator.Core
         private ITask GetTask(JToken token, Type taskType)
         {
             var instance = Activator.CreateInstance(taskType);
-            var props = taskType.GetProperties();
+            var props = taskType.GetProperties().Where(p => p.CanWrite).ToList();
             foreach(var prop in props)
             {
                 var value = token.Values<JProperty>().SingleOrDefault(i => i.Name == prop.Name).Value.ToString();

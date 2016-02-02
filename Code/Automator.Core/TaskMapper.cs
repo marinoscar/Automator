@@ -30,8 +30,8 @@ namespace Automator.Core
             var taskInterface = typeof(ITask);
             var query = AppDomain.CurrentDomain.GetAssemblies()
                         .SelectMany(t => t.GetTypes())
-                        .Where(i => taskInterface.IsAssignableFrom(i))
-                        .Select(o => new { Name = o.Name, TaskQualifiedName = string.Format("{0},{1}", o.AssemblyQualifiedName, o.FullName) })
+                        .Where(i => taskInterface.IsAssignableFrom(i) && !i.IsInterface)
+                        .Select(o => new { Name = o.Name, TaskQualifiedName = o.AssemblyQualifiedName })
                         .ToList();
             query.ForEach(c => result.LoadItem(c.Name, c.TaskQualifiedName));
             return result;

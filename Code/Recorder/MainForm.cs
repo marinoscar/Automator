@@ -82,7 +82,8 @@ namespace Recorder
 
         private TreeNode LoadNode(TreeNode root, JToken token)
         {
-            if ((token.Type == JTokenType.Property && ((JProperty)token).Name == "TaskCaption") || IsTokenScalarValue(token)) return null;
+            if ((token.Type == JTokenType.Property && ((((JProperty)token).Name == "TaskCaption") || (((JProperty)token).Name == "TaskName")))
+                || IsTokenScalarValue(token)) return null;
             var name = GetName(token);
             var newNode = new TreeNode()
             {
@@ -163,12 +164,14 @@ namespace Recorder
         {
             var openDialog = new OpenFileDialog()
             {
-                Filter = "*Json files (*.json)|.json",
+                Filter = "Json file (*.json)|*.json|All Files (*.*)|*.*",
+                DefaultExt = ".json",
                 Title = "Open recording",
                 RestoreDirectory = true,
             };
             if (openDialog.ShowDialog() != DialogResult.OK) return;
             if (string.IsNullOrWhiteSpace(openDialog.FileName)) return;
+            DoOpen(openDialog.FileName);
         }
 
         private void UpdateTitle()
@@ -181,7 +184,7 @@ namespace Recorder
             var saveDialog = new SaveFileDialog()
             {
                 Title = "Save the recorded tasks",
-                Filter = "Json file (*.json)|*.json",
+                Filter = "Json file (*.json)|*.json|All Files (*.*)|*.*",
                 RestoreDirectory = true,
                 DefaultExt = ".json"
             };
@@ -194,7 +197,7 @@ namespace Recorder
         private void DoSave(string fileName)
         {
             var tasks = treeResult.Nodes[0].Nodes.Cast<TreeNode>().Select(i => (ITask)i.Tag).ToList();
-            File.WriteAllText(fileName, JsonConvert.SerializeObject(tasks));
+            File.WriteAllText(fileName, JsonConvert.SerializeObject(tasks, Formatting.Indented));
             MessageBox.Show("File saved", "The file was saved");
         }
 
@@ -239,12 +242,23 @@ namespace Recorder
 
         private void mnuNodeEdit_Click(object sender, EventArgs e)
         {
+            var task = (ITask)treeResult.SelectedNode.Tag;
             var editor = new NodeEditor()
             {
-                EditorObject = treeResult.SelectedNode.Tag
+                EditorObject = task
             };
-            if (editor.ShowDialog() == DialogResult.Cancel) return;
+            if (editor.ShowDialog() != DialogResult.OK) return;
             treeResult.SelectedNode.Tag = editor.EditorObject;
+            treeResult.SelectedNode.Text = task.TaskCaption;
+            treeResult.SelectedNode.Nodes.Clear();
+            var obj = JObject.FromObject(task);
+            foreach(var token in obj.Values<JToken>())
+            {
+                LoadNode(treeResult.SelectedNode, token);
+            }
+            treeResult.Refresh();
+            Application.DoEvents();
+            treeResult.SelectedNode.EnsureVisible();
             SetDirty();
         }
     }

@@ -23,5 +23,10 @@ namespace Recorder
             set { taskGrid.SelectedObject = value; }
         }
 
+        private void btnOk_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.OK;
+            Close();
+        }
     }
 }
