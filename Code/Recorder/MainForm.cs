@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace Recorder
     {
 
         private DesktopRecorder _recorder;
+        private FileInfo _recorderFile;
+        private bool _isDirty;
 
         public MainForm()
         {
@@ -25,19 +28,33 @@ namespace Recorder
             _recorder.LogAction += Recorder_LogAction;
         }
 
+        private void SetDirty()
+        {
+            if (!_isDirty)
+            {
+                Text = Text + " *";
+            }
+            _isDirty = true;
+        }
+
         private void Recorder_LogAction(object sender, string e)
         {
             txtConsole.AppendText(string.Format("{0}\n", e));
         }
 
-        
+
         private void MainForm_Load(object sender, EventArgs e)
         {
         }
 
-      
+
 
         private void LoadTree()
+        {
+            LoadTree(_recorder.TaskList);
+        }
+
+        private void LoadTree(List<ITask> tasks)
         {
             treeResult.Nodes.Clear();
             var root = new TreeNode()
@@ -50,14 +67,14 @@ namespace Recorder
             tabControl.SelectedTab = tabResult;
             pbExecution.Visible = true;
             pbExecution.Minimum = 1;
-            pbExecution.Maximum = _recorder.TaskList.Count;
-            var tasks = _recorder.TaskList;
-            foreach(var task in _recorder.TaskList)
+            pbExecution.Maximum = tasks.Count;
+            foreach (var task in tasks)
             {
                 var token = JToken.FromObject(task);
                 var node = LoadNode(root, token);
-                pbExecution.Value = _recorder.TaskList.IndexOf(task) + 1;
+                pbExecution.Value = tasks.IndexOf(task) + 1;
                 node.Tag = task;
+                node.ContextMenuStrip = mnuNodeCtx;
                 node.EnsureVisible();
                 Application.DoEvents();
             }
@@ -140,6 +157,95 @@ namespace Recorder
                 pbExecution.Value = taskNodes.IndexOf(node) + 1;
                 Application.DoEvents();
             }
+        }
+
+        private void btnOpen_Click(object sender, EventArgs e)
+        {
+            var openDialog = new OpenFileDialog()
+            {
+                Filter = "*Json files (*.json)|.json",
+                Title = "Open recording",
+                RestoreDirectory = true,
+            };
+            if (openDialog.ShowDialog() != DialogResult.OK) return;
+            if (string.IsNullOrWhiteSpace(openDialog.FileName)) return;
+        }
+
+        private void UpdateTitle()
+        {
+            this.Text = string.Format("Automator Session {0}", _recorderFile.Name);
+        }
+
+        private void DoSaveAs()
+        {
+            var saveDialog = new SaveFileDialog()
+            {
+                Title = "Save the recorded tasks",
+                Filter = "Json file (*.json)|*.json",
+                RestoreDirectory = true,
+                DefaultExt = ".json"
+            };
+            if (saveDialog.ShowDialog() != DialogResult.OK) return;
+            _recorderFile = new FileInfo(saveDialog.FileName);
+            UpdateTitle();
+            DoSave(_recorderFile.FullName);
+        }
+
+        private void DoSave(string fileName)
+        {
+            var tasks = treeResult.Nodes[0].Nodes.Cast<TreeNode>().Select(i => (ITask)i.Tag).ToList();
+            File.WriteAllText(fileName, JsonConvert.SerializeObject(tasks));
+            MessageBox.Show("File saved", "The file was saved");
+        }
+
+        private void DoOpen(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return;
+            if (!File.Exists(fileName)) return;
+            _recorderFile = new FileInfo(fileName);
+            UpdateTitle();
+            var loader = new TaskLoader();
+            LoadTree(loader.LoadTasks(fileName));
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            if (_recorderFile == null) DoSaveAs();
+            else DoSave(_recorderFile.FullName);
+        }
+
+        private void mnuSaveAs_Click(object sender, EventArgs e)
+        {
+            DoSaveAs();
+        }
+
+        private void mnuExit_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Close Application", "Are you sure you want to exit", MessageBoxButtons.YesNo) == DialogResult.Yes) Application.Exit();
+        }
+
+        private void mnuNodeDelete_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Delete Task", "Are you sure you want to delete the selected task", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No) return;
+            if (treeResult.Nodes[0] == treeResult.SelectedNode) return;
+            treeResult.SelectedNode.Remove();
+
+        }
+
+        private void treeResult_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            treeResult.SelectedNode = e.Node;
+        }
+
+        private void mnuNodeEdit_Click(object sender, EventArgs e)
+        {
+            var editor = new NodeEditor()
+            {
+                EditorObject = treeResult.SelectedNode.Tag
+            };
+            if (editor.ShowDialog() == DialogResult.Cancel) return;
+            treeResult.SelectedNode.Tag = editor.EditorObject;
+            SetDirty();
         }
     }
 }
