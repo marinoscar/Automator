@@ -76,6 +76,7 @@ namespace Recorder
         private void MouseRecorder_ActionRecorded(object sender, MouseEvent e)
         {
             AddEvent(e);
+            LogWindowInfo();
             OnLogAction(string.Format("Mouse Click: X: {0} Y: {1} Count: {2} Button: {3}", e.X, e.Y, e.Count, e.Button));
         }
 
@@ -83,10 +84,18 @@ namespace Recorder
         {
             if(_windowTracker.HasActiveWindowChanged())
             {
+                LogWindowInfo();
                 OnLogAction(string.Format("Active Window Changed to: {0} id: {0}", _windowTracker.GetActiveWindowTitle(), _windowTracker.GetActiveWindowId().ToInt64()));
                 RawEvents.Add(new TransitionEvent() { TransitionType = TransitionType.ActiveWindowChanged });
             }
             RawEvents.Add(e);
+        }
+
+        private void LogWindowInfo()
+        {
+            var win = _windowTracker.CurrentActiveWindow;
+            if (win != null)
+                OnLogAction(string.Format("Class {0} Text: {1} Size: {2}", win.ClassName, win.Text, win.Rect));
         }
 
         public void RunTasks()

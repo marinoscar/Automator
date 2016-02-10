@@ -137,26 +137,35 @@ namespace Recorder
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+        }
+
+        private void DoExecute(int iterations)
+        {
             var root = treeResult.Nodes[0];
             var taskNodes = root.Nodes.Cast<TreeNode>().ToList();
             pbExecution.Visible = true;
             pbExecution.Minimum = 1;
-            pbExecution.Maximum = taskNodes.Count;
+            pbExecution.Maximum = taskNodes.Count * iterations;
             TreeNode prev = null;
-            foreach (var node in taskNodes)
+            var counter = 1;
+            for(var i = 0; i<iterations; i++)
             {
-                Application.DoEvents();
-                var task = ((ITask)node.Tag);
-                node.ForeColor = Color.Blue;
-                treeResult.SelectedNode = node;
-                node.EnsureVisible();
-                Application.DoEvents();
-                task.Execute();
-                if (prev != null)
-                    prev.ForeColor = Color.Black;
-                prev = node;
-                pbExecution.Value = taskNodes.IndexOf(node) + 1;
-                Application.DoEvents();
+                foreach (var node in taskNodes)
+                {
+                    Application.DoEvents();
+                    var task = ((ITask)node.Tag);
+                    node.ForeColor = Color.Blue;
+                    treeResult.SelectedNode = node;
+                    node.EnsureVisible();
+                    Application.DoEvents();
+                    task.Execute();
+                    if (prev != null)
+                        prev.ForeColor = Color.Black;
+                    prev = node;
+                    pbExecution.Value = counter;
+                    Application.DoEvents();
+                    counter++;
+                }
             }
         }
 
@@ -281,6 +290,13 @@ namespace Recorder
             }
 
 
+        }
+
+        private void mnuLoopRun_Click(object sender, EventArgs e)
+        {
+            var timeTag = ((ToolStripMenuItem)sender).Tag;
+            var times = timeTag == null ? 1 : Convert.ToInt32(timeTag);
+            DoExecute(times);
         }
     }
 }
